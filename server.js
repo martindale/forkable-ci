@@ -7,11 +7,9 @@ app.use(express.logger());
 app.use(express.bodyParser());
 
 app.post('/github_webhook', function(req, res) {
-    console.log("req.params = " + JSON.stringify(req.params));
-    console.log("req.body = " + JSON.stringify(req.body));
+    var push = JSON.parse(req.body);
+    console.log(push.payload);
 
-    //var push = JSON.parse(req.params.payload);
-    //console.log(req.params.payload);
     res.send("OK");
 });
 
