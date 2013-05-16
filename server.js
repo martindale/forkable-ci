@@ -4,6 +4,7 @@ var connection = require("ssh2")
   , app        = express();
 
 app.use(express.logger());
+app.use(express.bodyParser());
 
 app.post('/github_webhook', function(req, res) {
     console.log("req.params = " + JSON.stringify(req.params));
