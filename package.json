@@ -11,7 +11,8 @@
     "url": "git://github.com/brianpmarks/forkable-ci.git"
   },
   "dependencies": {
-    "express": "3.2.x"
+    "express": "3.2.x",
+    "ssh2": "0.2.x"
   },
   "author": "Brian Marks",
   "license": "MIT"
