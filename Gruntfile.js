@@ -1,30 +1,31 @@
 module.exports = function(grunt) {
-  var remote = grunt.file.readJSON(grunt.option('remote'));
-  var pk = grunt.file.read(remote.privateKey);
+  var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
+  var pk     = remote.privateKey ? grunt.file.read(remote.privateKey) : "";
+
   grunt.initConfig({
     sshexec: {
       deploy: {
-        command: "cd /usr/local/node/forkable-ci && grunt clone",
+        command: "cd /usr/local/node/forkable-ci && grunt pull",
         options: {
           host: remote.host,
           username: remote.username,
-          privateKey: grunt.file.read(remote.privateKey),
+          privateKey: pk,
           passphrase: process.env.PASS
         }
       }
     },
     shell: {
-      clone: {
+      pull: {
         command: [
-          "git clone git@github.com:coursefork/forkshop.git",
-          "cd forkshop",
-          "npm install"
+          "git pull",
+          "npm install",
+          "forever restart coursefork.js"
         ].join('&&'),
         options: {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "/usr/local/node"
+            cwd: "/usr/local/node/forkshop"
           }
         }
       }
@@ -34,6 +35,11 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-shell');
 
-  grunt.registerTask('clone', ['shell:clone']);
+  // assumes repo has already been cloned
+  // git@github.com:coursefork/forkshop.git
+  grunt.registerTask('pull', ['shell:pull']);
+
+  // assumes PASS set at command-line or env
+  // and --remote points to a json file with config info
   grunt.registerTask('deploy', ['sshexec:deploy']);
 }
