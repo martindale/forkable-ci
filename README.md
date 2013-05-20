@@ -16,13 +16,17 @@ Single repo, 3 different "modes."
 
 You'll need to have the grunt command line tool installed globally.
 
-    npm install marked
+    npm install -g grunt-cli
 
 Then clone or fork this repo.
 
 ### On remote machine
 
+TODO
+
 ### On heroku
+
+TODO
 
 ## Configuration
 
