@@ -1,10 +1,8 @@
-Forkable CI
-===========
+# Forkable CI
 
 Deploy Coursefork using [gruntjs](http://gruntjs.com/).
 
-Overview
---------
+## Overview
 
 Single repo, 3 different "modes."
 
@@ -12,17 +10,21 @@ Single repo, 3 different "modes."
 * execute deployment steps on remote machine
 * heroku web listener for github service hooks
 
-Installation
-------------
+## Installation
+
+### On local machine for remote deploy
 
 You'll need to have the grunt command line tool installed globally.
 
-  npm install -g grunt-cli
+    npm install marked
 
 Then clone or fork this repo.
 
-Configuration
--------------
+### On remote machine
+
+### On heroku
+
+## Configuration
 
 You'll need a JSON host file containing:
 
@@ -30,10 +32,9 @@ You'll need a JSON host file containing:
 * username - user that logs into remote machine over ssh
 * privateKey - path to your privateKey (public key needs to be added to remote machine)
 
-Usage
------
+## Usage
 
 For deploying to remote machine:
 
-  PASS=<passphrase> grunt deploy --remote <path to config file>
+    PASS=[passphrase] grunt deploy --remote [path to config file]
 
