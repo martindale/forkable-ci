@@ -10,6 +10,8 @@ Single repo, 3 different "modes."
 * execute deployment steps on remote machine
 * heroku web listener for github service hooks
 
+![alt text](https://github.com/brianpmarks/forkable-ci/deploy_process.png "Deploy Process")
+
 ## Installation
 
 ### On local machine for remote deploy
