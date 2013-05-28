@@ -19,7 +19,7 @@ module.exports = function(grunt) {
         command: [
           "git pull",
           "npm install",
-          "restart coursefork"
+          "forever restart coursefork.js"
         ].join('&&'),
         options: {
           stdout: true,
