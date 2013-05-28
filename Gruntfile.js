@@ -19,13 +19,25 @@ module.exports = function(grunt) {
         command: [
           "git pull",
           "npm install",
-          "forever restart coursefork.js"
+          "restart coursefork"
         ].join('&&'),
         options: {
           stdout: true,
           stderr: true,
           execOptions: {
             cwd: "/usr/local/node/forkshop"
+          }
+        }
+      },
+      test: {
+        command: [
+          "make test"
+        ].join('&&'),
+        options: {
+          stdout: true,
+          stderr: true,
+          execOptions: {
+            cwd: "." // "/usr/local/node"
           }
         }
       }
@@ -38,6 +50,9 @@ module.exports = function(grunt) {
   // assumes repo has already been cloned
   // git@github.com:coursefork/forkshop.git
   grunt.registerTask('pull', ['shell:pull']);
+
+  // work in progress...
+  grunt.registerTask('test', ['shell:test']);
 
   // assumes PASS set at command-line or env
   // and --remote points to a json file with config info
