@@ -12,12 +12,57 @@ module.exports = function(grunt) {
           privateKey: pk,
           passphrase: process.env.PASS
         }
+      },
+      status: {
+        command: "forever list",
+        options: {
+          host: remote.host,
+          username: remote.username,
+          privateKey: pk,
+          passphrase: process.env.PASS
+        }
+      },
+      check_branch: {
+        command: "grunt git_branch",
+        options: {
+          host: remote.host,
+          username: remote.username,
+          privateKey: pk,
+          passphrase: process.env.PASS,
+          cwd: "/usr/local/node/forkable-ci"
+        }
       }
     },
     shell: {
       pull: {
         command: [
           "git pull",
+          "npm install",
+          "forever restart coursefork.js"
+        ].join('&&'),
+        options: {
+          stdout: true,
+          stderr: true,
+          execOptions: {
+            cwd: "/usr/local/node/forkshop"
+          }
+        }
+      },
+      git_branch: {
+        command: [
+          "git branch"
+        ],
+        options: {
+          stdout: true,
+          execOptions: {
+            cwd: "/usr/local/node/forkshop"
+          }
+        }
+      },
+      switch_branch: {
+        command: [
+          "git fetch origin",
+          "git branch pr/" + grunt.option("pr"),
           "npm install",
           "forever restart coursefork.js"
         ].join('&&'),
@@ -51,10 +96,21 @@ module.exports = function(grunt) {
   // git@github.com:coursefork/forkshop.git
   grunt.registerTask('pull', ['shell:pull']);
 
+  // local git branch check
+  grunt.registerTask('git_branch', ['shell:git_branch']);
+
   // work in progress...
   grunt.registerTask('test', ['shell:test']);
 
   // assumes PASS set at command-line or env
   // and --remote points to a json file with config info
+  // calls shell:pull
   grunt.registerTask('deploy', ['sshexec:deploy']);
+
+  // check the status of coursefork node app
+  grunt.registerTask('status', ['sshexec:status']);
+
+  // see which branch is active
+  // calls shell:git_branch
+  grunt.registerTask('check_branch', ['sshexec:check_branch']);
 }
