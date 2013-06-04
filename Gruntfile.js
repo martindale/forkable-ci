@@ -49,9 +49,7 @@ module.exports = function(grunt) {
         }
       },
       git_branch: {
-        command: [
-          "git branch"
-        ],
+        command: "git branch",
         options: {
           stdout: true,
           execOptions: {
