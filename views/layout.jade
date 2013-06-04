@@ -1,0 +1,27 @@
+doctype 5
+html(lang='en')
+  head
+    title= title
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+
+    meta(http-equiv="content-language", content="en")
+
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/css/screen.css')
+
+    script(src='//code.jquery.com/jquery.min.js')
+    script(src='/js/bootstrap.min.js')
+
+  body
+
+    div.navbar.navbar-fixed-top
+      div.navbar-inner
+        div.container
+          ul.nav
+            li
+             a(href='/') coursefork pull requests
+
+    div.container
+      block content
+
+    script(src='/js/app.js')

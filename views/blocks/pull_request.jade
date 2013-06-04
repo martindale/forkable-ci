@@ -1,0 +1,7 @@
+div.row.pr
+  div.span6
+    ##{pull_request.number}. 
+    a(href='#{pull_request.html_url}') #{pull_request.title}
+
+  div.offset1.span2
+    button.btn(data-id='#{pull_request.number}') Checkout

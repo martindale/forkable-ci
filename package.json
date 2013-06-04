@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "express": "3.2.x",
+    "jade": "0.31.x",
+    "request": "2.21.x",
+    "mongoose": "3.6.x",
     "ssh2": "0.2.x",
     "grunt": "0.4.x",
     "grunt-ssh": "0.4.x",
