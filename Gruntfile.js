@@ -89,6 +89,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-shell');
 
+  // -----------
+  // Shell tasks
+
   // assumes repo has already been cloned
   // git@github.com:coursefork/forkshop.git
   grunt.registerTask('pull', ['shell:pull']);
@@ -96,8 +99,16 @@ module.exports = function(grunt) {
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
 
+  // switch branch
+  // needs --pr command line arg set to a pull request number
+  // e.g. grunt switch_branch --pr 59
+  grunt.registerTask('switch_branch', ['shell:switch_branch']);
+
   // work in progress...
   grunt.registerTask('test', ['shell:test']);
+
+  // ---------
+  // SSH tasks
 
   // assumes PASS set at command-line or env
   // and --remote points to a json file with config info
