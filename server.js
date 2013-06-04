@@ -6,7 +6,6 @@ var connection = require("ssh2")
   , mongoose   = require("mongoose");
 
 app.use(express.logger());
-app.use(express.bodyParser());
 
 app.set('views', __dirname + '/views');
 app.set('view engine', 'jade');
@@ -56,7 +55,7 @@ app.get('/', function(req, res) {
 });
 
 app.post('/checkout_branch', function(req, res) {
-  var pr = req.params.pr;
+  var pr = req.body.pr;
   // ssh to staging
   // exec grunt branch --pr=req.params.pr
   console.log('pr = ' + pr);
