@@ -23,13 +23,12 @@ module.exports = function(grunt) {
         }
       },
       check_branch: {
-        command: "grunt git_branch",
+        command: "cd /usr/local/node/forkable-ci && grunt git_branch",
         options: {
           host: remote.host,
           username: remote.username,
           privateKey: pk,
-          passphrase: process.env.PASS,
-          cwd: "/usr/local/node/forkable-ci"
+          passphrase: process.env.PASS
         }
       }
     },
