@@ -56,10 +56,10 @@ module.exports = function(grunt) {
           }
         }
       },
-      switch_branch: {
+      checkout_branch: {
         command: [
           "git fetch origin",
-          "git branch pr/" + grunt.option("pr"),
+          "git checkout pr/" + grunt.option("pr"),
           "npm install",
           "forever restart coursefork.js"
         ].join('&&'),
@@ -99,10 +99,10 @@ module.exports = function(grunt) {
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
 
-  // switch branch
+  // checkout branch
   // needs --pr command line arg set to a pull request number
-  // e.g. grunt switch_branch --pr 59
-  grunt.registerTask('switch_branch', ['shell:switch_branch']);
+  // e.g. grunt checkout_branch --pr 59
+  grunt.registerTask('checkout_branch', ['shell:checkout_branch']);
 
   // work in progress...
   grunt.registerTask('test', ['shell:test']);
