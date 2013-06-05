@@ -20,6 +20,9 @@ app.use(express.errorHandler());
 // schema for past test results?
 mongoose.connect( process.env.MONGOLAB_URI || "mongodb://localhost/forkable-ci" );
 
+// models
+var models = require("./models");
+
 // github webhooks
 // on pull request do ???
 // auto run tests on staging server and push results back as a comment to pull request?
@@ -46,10 +49,22 @@ app.get('/', function(req, res) {
       // need to know which branch is active on staging
       var pull_requests = JSON.parse(body);
 
-      // display all pull requests and their state
-      res.render('index', {
-        title : "Coursefork Pull Requests",
-        pull_requests : pull_requests
+      models.PullRequest.find().exec(function(err, pr_list) {
+        // prs should be unique by number
+        // map to hash rather than array
+        var prs = {};
+        for (var i = 0; i < pr_list.length; i++) {
+          prs[ "n" + pr_list[i].number ] = pr_list[i];
+        }
+
+        console.log('prs = ' + JSON.stringify(prs));
+
+        // display all pull requests and their state
+        res.render('index', {
+          title : "Coursefork Pull Requests",
+          prs : prs,
+          pull_requests : pull_requests
+        });
       });
     });
 });
@@ -77,9 +92,17 @@ app.post('/checkout_branch', function(req, res) {
   });
 
   c.on('close', function() {
-    // render new page?
-    res.json({
-      status: "ok"
+    // update any other pull requests "on_staging"
+    models.PullRequest.update({ on_staging : true }, { $set : { on_staging : false } }, function(err) {
+
+      // if everything went ok, update mongodb
+      models.PullRequest.update({ number : pr }, { $set : { on_staging : true } }, { upsert : true }, function(err) {
+        // render new page?
+        res.json({
+          status: "ok"
+        });
+      });
+
     });
   });
 

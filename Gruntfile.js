@@ -58,8 +58,6 @@ module.exports = function(grunt) {
       },
       checkout_branch: {
         command: [
-          "ls",
-          "pwd",
           "git fetch origin",
           "git checkout pr/" + grunt.option("pr"),
           "npm install",
