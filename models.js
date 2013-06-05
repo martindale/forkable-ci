@@ -4,12 +4,22 @@ var mongoose = require("mongoose")
   , ObjectId = mongoose.SchemaTypes.ObjectId;
 
 var PullRequestSchema = new Schema({
-    number: { type: Number, required: true },
-    on_staging: { type: Boolean, default: false }
+  number: { type: Number, required: true },
+  on_staging: { type: Boolean, default: false }
 });
 
 var PullRequest = mongoose.model("PullRequest", PullRequestSchema);
 
+var UserSchema = new Schema({
+  username: { type: String, required: true },
+  accessToken: { type: String },
+  profileUrl: { type: String },
+  github_id: { type: Number }
+});
+
+var User = mongoose.model("User", UserSchema);
+
 module.exports = {
-  PullRequest: PullRequest
+  PullRequest: PullRequest,
+  User: User
 };

@@ -1,5 +1,8 @@
 
 $("button").on("click", function(e) {
+  // disable other buttons?
+  // implement some sort of spinner...
+
   $.ajax({
     type: "POST",
     url: "/checkout_branch",
@@ -12,6 +15,5 @@ $("button").on("click", function(e) {
 });
 
 function branchCheckedOut(data, status, jqxhr) {
-  console.log("data = " + JSON.stringify(data));
-  console.log("status = " + status);
+  // change state of buttons
 }

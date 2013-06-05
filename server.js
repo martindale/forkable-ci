@@ -1,20 +1,13 @@
 
-var connection = require("ssh2")
-  , express    = require("express")
-  , request    = require("request")
-  , app        = express()
-  , mongoose   = require("mongoose");
-
-app.use(express.logger());
-
-app.set('views', __dirname + '/views');
-app.set('view engine', 'jade');
-app.use(express.static(__dirname + '/public'));
-
-app.use(express.methodOverride())
-app.use(express.cookieParser()); // config.sessions.key
-app.use(express.bodyParser());
-app.use(express.errorHandler());
+var connection     = require("ssh2")
+  , express        = require("express")
+  , request        = require("request")
+  , app            = express()
+  , mongoose       = require("mongoose")
+  , passport       = require("passport")
+  , GitHubStrategy = require("passport-github").Strategy
+  , RedisStore     = require("connect-redis")(express)
+  , url            = require("url");
 
 // TODO: schema for currently deployed branch (rather than real-time check?)
 // schema for past test results?
@@ -22,6 +15,76 @@ mongoose.connect( process.env.MONGOLAB_URI || "mongodb://localhost/forkable-ci" 
 
 // models
 var models = require("./models");
+
+app.use(express.logger());
+
+app.set('views', __dirname + '/views');
+app.set('view engine', 'jade');
+app.use(express.static(__dirname + '/public'));
+
+app.use(express.cookieParser()); // config.sessions.key
+app.use(express.bodyParser());
+app.use(express.methodOverride())
+app.use(express.errorHandler());
+
+var sessionStore;
+if (process.env.REDISTOGO_URL) {
+  var rtg = url.parse( process.env.REDISTOGO_URL );
+  var auth = rtg.auth.split(':')[1];
+  sessionStore = new RedisStore({
+    host: rtg.hostname,
+    port: rtg.port,
+    pass: auth
+  });
+}
+else {
+  sessionStore = new RedisStore();
+}
+
+app.use(express.session({
+    secret: "github for all the things"
+  , store: sessionStore
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user, done) {
+  console.log("serializeUser? " + JSON.stringify(user));
+  done(null, user._id);
+});
+passport.deserializeUser(function(user_id, done) {
+  models.User.findOne({ _id: user_id }, function(err, user) {
+    done(null, user);
+  });
+});
+
+passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET
+  }, function(accessToken, refreshToken, profile, done) {
+    // create / update user
+    models.User.findOne({ username : profile.username }, function(err, user) {
+      // may want to update some user fields...?
+      if (user) return done(null, user);
+
+      var cf_user = new models.User();
+      cf_user.username = profile.username;
+      cf_user.accessToken = accessToken;
+      cf_user.profileUrl = profile.profileUrl,
+      cf_user.github_id = profile.id;
+
+      cf_user.save(function(err, cf_user) {
+        return done(null, cf_user);
+      });
+    });
+  }
+));
+
+function requireLogin(req, res, next) {
+  if (req.isAuthenticated()) { return next() }
+  res.status(401).render('login');
+}
 
 // github webhooks
 // on pull request do ???
@@ -32,9 +95,15 @@ app.post('/github_webhook', function(req, res) {
     res.send("OK");
 });
 
+app.get('/auth/github', passport.authenticate('github'));
+
+app.get('/auth/github/callback', passport.authenticate('github'), function(req, res) {
+  res.redirect('/');
+});
+
 var github_token = process.env.GITHUB_TOKEN;
 
-app.get('/', function(req, res) {
+app.get('/', requireLogin, function(req, res) {
     // GET /repos/:owner/:repo/pulls
     request({
       method: 'GET',
