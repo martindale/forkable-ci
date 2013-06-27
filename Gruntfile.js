@@ -1,3 +1,5 @@
+var prompt = require("prompt");
+
 module.exports = function(grunt) {
   var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
   var pk     = remote.privateKey ? grunt.file.read(remote.privateKey) : "";
@@ -10,7 +12,7 @@ module.exports = function(grunt) {
           host: remote.host,
           username: remote.username,
           privateKey: pk,
-          passphrase: process.env.PASS
+          passphrase: '<%= passphrase %>'
         }
       },
       status: {
@@ -19,7 +21,7 @@ module.exports = function(grunt) {
           host: remote.host,
           username: remote.username,
           privateKey: pk,
-          passphrase: process.env.PASS
+          passphrase: '<%= passphrase %>'
         }
       },
       check_branch: {
@@ -28,7 +30,7 @@ module.exports = function(grunt) {
           host: remote.host,
           username: remote.username,
           privateKey: pk,
-          passphrase: process.env.PASS
+          passphrase: '<%= passphrase %>'
         }
       }
     },
@@ -37,6 +39,8 @@ module.exports = function(grunt) {
         command: [
           "git pull",
           "npm install",
+          "git submodule init",
+          "git submodule update",
           "forever restart coursefork.js"
         ].join('&&'),
         options: {
@@ -61,6 +65,8 @@ module.exports = function(grunt) {
           "git fetch origin",
           "git checkout pr/" + grunt.option("pr"),
           "npm install",
+          "git submodule init",
+          "git submodule update",
           "forever restart coursefork.js"
         ].join('&&'),
         options: {
@@ -110,15 +116,44 @@ module.exports = function(grunt) {
   // ---------
   // SSH tasks
 
-  // assumes PASS set at command-line or env
-  // and --remote points to a json file with config info
+  // assumes --remote (set at command-line) points to a json file with config info
   // calls shell:pull
-  grunt.registerTask('deploy', ['sshexec:deploy']);
+  grunt.registerTask('exec_deploy', ['sshexec:deploy']);
+  grunt.registerTask('deploy', 'Deploy latest updates to master', function() {
+    var done = this.async();
+    getPassphrase(grunt, 'exec_deploy', done);
+  });
 
   // check the status of coursefork node app
-  grunt.registerTask('status', ['sshexec:status']);
+  grunt.registerTask('exec_status', ['sshexec:status']);
+  grunt.registerTask('status', 'Checkout status of coursefork node app', function() {
+    var done = this.async();
+    getPassphrase(grunt, 'exec_status', done);
+  });
 
   // see which branch is active
   // calls shell:git_branch
-  grunt.registerTask('check_branch', ['sshexec:check_branch']);
+  grunt.registerTask('exec_check_branch', ['sshexec:check_branch']);
+  grunt.registerTask('check_branch', 'Check which branch is active', function() {
+    var done = this.async();
+    getPassphrase(grunt, 'exec_check_branch', done);
+  });
+}
+
+function getPassphrase(grunt, task, done) {
+  var schema = {
+    properties: {
+      passphrase: {
+        hidden: true
+      }
+    }
+  };
+
+  prompt.start();
+
+  prompt.get(schema, function(err, result) {
+      grunt.config.set('passphrase', result.passphrase);
+      grunt.task.run(task);
+      done();
+  });
 }

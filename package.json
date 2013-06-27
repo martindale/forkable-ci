@@ -21,7 +21,8 @@
     "ssh2": "0.2.x",
     "grunt": "0.4.x",
     "grunt-ssh": "0.4.x",
-    "grunt-shell": "0.2.x"
+    "grunt-shell": "0.2.x",
+    "prompt": "0.2.x"
   },
   "engines": {
     "node": ">= 0.8.x",
