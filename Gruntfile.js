@@ -4,16 +4,13 @@ module.exports = function(grunt) {
   var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
   var pk     = remote.privateKey ? grunt.file.read(remote.privateKey) : "";
 
-  // forkable-ci home
-  var home   = grunt.option('home') || '/usr/local/node/forkable-ci';
-
   // forkshop root
   var root   = grunt.option('root') || '/usr/local/node/forkshop';
 
   grunt.initConfig({
     sshexec: {
       deploy: {
-        command: "cd <%= home %> && grunt pull",
+        command: 'cd /usr/local/node/forkable-ci && grunt pull',
         options: {
           host: remote.host,
           username: remote.username,
@@ -31,7 +28,7 @@ module.exports = function(grunt) {
         }
       },
       check_branch: {
-        command: "cd <%= home %> && grunt git_branch",
+        command: 'cd /usr/local/node/forkable-ci && grunt git_branch',
         options: {
           host: remote.host,
           username: remote.username,
