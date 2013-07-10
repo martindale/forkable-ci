@@ -4,10 +4,16 @@ module.exports = function(grunt) {
   var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
   var pk     = remote.privateKey ? grunt.file.read(remote.privateKey) : "";
 
+  // forkable-ci home
+  var home   = grunt.option('home') || '/usr/local/node/forkable-ci';
+
+  // forkshop root
+  var root   = grunt.option('root') || '/usr/local/node/forkshop';
+
   grunt.initConfig({
     sshexec: {
       deploy: {
-        command: "cd /usr/local/node/forkable-ci && grunt pull",
+        command: "cd <%= home %> && grunt pull",
         options: {
           host: remote.host,
           username: remote.username,
@@ -25,7 +31,7 @@ module.exports = function(grunt) {
         }
       },
       check_branch: {
-        command: "cd /usr/local/node/forkable-ci && grunt git_branch",
+        command: "cd <%= home %> && grunt git_branch",
         options: {
           host: remote.host,
           username: remote.username,
@@ -40,14 +46,23 @@ module.exports = function(grunt) {
           "git pull",
           "npm install",
           "git submodule init",
-          "git submodule update",
-          "forever restart coursefork.js"
+          "git submodule update"
         ].join('&&'),
         options: {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "/usr/local/node/forkshop"
+            cwd: "<%= root %>"
+          }
+        }
+      },
+      restart: {
+        command: "forever restart coursefork.js",
+        options: {
+          stdout: true,
+          stderr: true,
+          execOptions: {
+            cwd: "<%= root %>"
           }
         }
       },
@@ -56,7 +71,7 @@ module.exports = function(grunt) {
         options: {
           stdout: true,
           execOptions: {
-            cwd: "/usr/local/node/forkshop"
+            cwd: "<%= root %>"
           }
         }
       },
@@ -73,7 +88,19 @@ module.exports = function(grunt) {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "/usr/local/node/forkshop"
+            cwd: "<%= root %>"
+          }
+        }
+      },
+      build: {
+        command: [
+          "make clean"
+        ].join('&&'),
+        options: {
+          stdout: true,
+          stderr: true,
+          execOptions: {
+            cwd: "/usr/local/node/build"
           }
         }
       },
@@ -89,18 +116,62 @@ module.exports = function(grunt) {
           }
         }
       }
+    },
+    concat: {
+      css: {
+        options: {
+          process: function(src, filepath) {
+            // replace relative reference to ../img with /img
+            return src.replace(/\.\.(\/img)/g, '$1');
+          }
+        }
+      }
+    },
+    uglify: {
+      js: {}
     }
   });
 
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
 
   // -----------
   // Shell tasks
 
   // assumes repo has already been cloned
   // git@github.com:coursefork/forkshop.git
-  grunt.registerTask('pull', ['shell:pull']);
+  grunt.registerTask('pull', 'Pull latest updates to local repo', function() {
+
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
+
+    // pull latest code
+    grunt.task.run('shell:pull');
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // concat css
+    grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
+    grunt.task.run('concat');
+
+    // uglify js
+    grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
+    grunt.task.run('uglify');
+
+    // restart service
+    grunt.task.run('shell:restart');
+
+  });
 
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
@@ -112,6 +183,12 @@ module.exports = function(grunt) {
 
   // work in progress...
   grunt.registerTask('test', ['shell:test']);
+
+  // build
+  // not complete - will be used for building and testing pull requests
+  grunt.registerTask('_build', ['shell:build']);
+  grunt.registerTask('build', 'Build coursefork', function() {
+  });
 
   // ---------
   // SSH tasks
