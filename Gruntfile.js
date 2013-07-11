@@ -58,7 +58,7 @@ module.exports = function(grunt) {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "<%= root %>"
+            cwd: "/usr/local/node/forkshop"
           }
         }
       },
@@ -68,7 +68,7 @@ module.exports = function(grunt) {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "<%= root %>"
+            cwd: "/usr/local/node/forkshop"
           }
         }
       },
@@ -77,7 +77,7 @@ module.exports = function(grunt) {
         options: {
           stdout: true,
           execOptions: {
-            cwd: "<%= root %>"
+            cwd: "/usr/local/node/forkshop"
           }
         }
       },
@@ -94,7 +94,7 @@ module.exports = function(grunt) {
           stdout: true,
           stderr: true,
           execOptions: {
-            cwd: "<%= root %>"
+            cwd: "/usr/local/node/forkshop"
           }
         }
       },
