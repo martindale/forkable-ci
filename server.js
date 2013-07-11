@@ -144,7 +144,6 @@ app.post('/checkout_branch', function(req, res) {
   // ssh to staging
   // exec grunt checkout_branch --branch req.params.pr
 
-  if (pr !== "master") pr = "pr/" + pr;
   console.log('pr = ' + pr);
 
   var c = new connection();
@@ -166,7 +165,6 @@ app.post('/checkout_branch', function(req, res) {
   c.on('close', function() {
     // update any other pull requests "on_staging"
     models.PullRequest.update({ on_staging : true }, { $set : { on_staging : false } }, function(err) {
-      console.log('on_staging = false update err? ' + err);
 
       // if everything went ok, update mongodb
       // $push : { deploys : { user : req.user } } - maybe this has to happen after on_staging update? at least for a new doc?
