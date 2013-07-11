@@ -1,10 +1,10 @@
 div.row.pr
   div.span6
-    ##{pull_request.branch}. 
+    ##{pull_request.number}. 
     a(href='#{pull_request.html_url}') #{pull_request.title}
 
   div.offset1.span2
-    - if (prs[ "n" + pull_request.branch ] && prs[ "n" + pull_request.branch ].on_staging)
+    - if (prs[ "n" + pull_request.number ] && prs[ "n" + pull_request.number ].on_staging)
       button.btn.btn-success On Staging
     - else
-      button.btn(data-id='#{pull_request.branch}') Checkout
+      button.btn(data-id='#{pull_request.number}') Checkout

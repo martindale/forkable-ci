@@ -117,6 +117,7 @@ app.get('/', requireLogin, function(req, res) {
     }, function(err, response, body) {
       // need to know which branch is active on staging
       var pull_requests = JSON.parse(body);
+      console.log('pull_requests = ' + pull_requests);
 
       models.PullRequest.find().exec(function(err, pr_list) {
         // prs should be unique by number
