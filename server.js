@@ -166,9 +166,11 @@ app.post('/checkout_branch', function(req, res) {
   c.on('close', function() {
     // update any other pull requests "on_staging"
     models.PullRequest.update({ on_staging : true }, { $set : { on_staging : false } }, function(err) {
+      console.log('on_staging = false update err? ' + err);
 
       // if everything went ok, update mongodb
       models.PullRequest.update({ branch : pr }, { $set : { on_staging : true, $push : { deploys : { user : req.user } } } }, { upsert : true }, function(err) {
+        console.log('on_staging = true update err? ' + err);
         // render new page?
         res.json({
           status: "ok"
