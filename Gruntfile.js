@@ -35,6 +35,15 @@ module.exports = function(grunt) {
           privateKey: pk,
           passphrase: '<%= passphrase %>'
         }
+      },
+      test_ssh: {
+        command: 'cd /usr/local/node/forkable-ci && grunt shell:test_ssh',
+        options: {
+          host: remote.host,
+          username: remote.username,
+          privateKey: pk,
+          passphrase: '<%= passphrase %>'
+        }
       }
     },
     shell: {
@@ -112,6 +121,15 @@ module.exports = function(grunt) {
             cwd: "." // "/usr/local/node"
           }
         }
+      },
+      test_ssh: {
+        command: [
+          "ssh -vT git@github.com"
+        ].join('&&'),
+        options: {
+          stdout: true,
+          stderr: true,
+        }
       }
     },
     concat: {
@@ -170,6 +188,48 @@ module.exports = function(grunt) {
 
   });
 
+  grunt.registerTask('uglify_pr', 'Uglify Pull Request', function() {
+
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // uglify js
+    grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
+    grunt.task.run('uglify');
+
+  });
+
+  grunt.registerTask('concat_pr', 'Concat Pull Request', function() {
+
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // concat css
+    grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
+    grunt.task.run('concat');
+
+  });
+
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
 
@@ -211,6 +271,13 @@ module.exports = function(grunt) {
   grunt.registerTask('check_branch', 'Check which branch is active', function() {
     var done = this.async();
     getPassphrase(grunt, 'exec_check_branch', done);
+  });
+
+  // test that ssh to git works on remote server
+  grunt.registerTask('exec_test_ssh', ['sshexec:test_ssh']);
+  grunt.registerTask('test_ssh_git', 'Test that ssh to git works on remote server', function() {
+    var done = this.async();
+    getPassphrase(grunt, 'exec_test_ssh', done);
   });
 }
 
