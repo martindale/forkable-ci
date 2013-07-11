@@ -4,7 +4,7 @@ var mongoose = require("mongoose")
   , ObjectId = mongoose.SchemaTypes.ObjectId;
 
 var PullRequestSchema = new Schema({
-  number: { type: Number, required: true },
+  branch: { type: String, required: true },
   on_staging: { type: Boolean, default: false },
   deploys: [ new Schema({
     user: { type: ObjectId, ref: 'User' },

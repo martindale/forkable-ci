@@ -1,7 +1,6 @@
 div.row.pr
   div.span6
-    ##{pull_request.branch}. 
-    a(href='#{pull_request.html_url}') #{pull_request.title}
+    a(href='') master
 
   div.offset1.span2
     - if (prs[ "n" + pull_request.branch ] && prs[ "n" + pull_request.branch ].on_staging)
