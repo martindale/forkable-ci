@@ -169,7 +169,8 @@ app.post('/checkout_branch', function(req, res) {
       console.log('on_staging = false update err? ' + err);
 
       // if everything went ok, update mongodb
-      models.PullRequest.update({ branch : pr }, { $set : { branch : pr, on_staging : true, $push : { deploys : { user : req.user } } } }, { upsert : true }, function(err) {
+      // $push : { deploys : { user : req.user } } - maybe this has to happen after on_staging update? at least for a new doc?
+      models.PullRequest.update({ branch : pr }, { $set : { branch : pr, on_staging : true } }, { upsert : true }, function(err) {
         console.log('on_staging = true update err? ' + err);
         // render new page?
         res.json({
