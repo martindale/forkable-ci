@@ -123,7 +123,7 @@ app.get('/', requireLogin, function(req, res) {
         // map to hash rather than array
         var prs = {};
         for (var i = 0; i < pr_list.length; i++) {
-          prs[ "n" + pr_list[i].number ] = pr_list[i];
+          prs[ "n" + pr_list[i].branch ] = pr_list[i];
         }
 
         console.log('prs = ' + JSON.stringify(prs));

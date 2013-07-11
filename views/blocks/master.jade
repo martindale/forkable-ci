@@ -3,7 +3,7 @@ div.row.pr
     a(href='') master
 
   div.offset1.span2
-    - if (prs[ "n" + pull_request.branch ] && prs[ "n" + pull_request.branch ].on_staging)
+    - if (prs[ "nmaster" ] && prs[ "nmaster" ].on_staging)
       button.btn.btn-success On Staging
     - else
-      button.btn(data-id='#{pull_request.branch}') Checkout
+      button.btn(data-id='master') Checkout
