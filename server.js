@@ -117,14 +117,14 @@ app.get('/', requireLogin, function(req, res) {
     }, function(err, response, body) {
       // need to know which branch is active on staging
       var pull_requests = JSON.parse(body);
-      console.log('pull_requests = ' + pull_requests);
+      console.log('pull_requests = ' + JSON.stringify(pull_requests));
 
       models.PullRequest.find().exec(function(err, pr_list) {
         // prs should be unique by number
         // map to hash rather than array
         var prs = {};
         for (var i = 0; i < pr_list.length; i++) {
-          prs[ "n" + pr_list[i].branch ] = pr_list[i];
+          prs[ pr_list[i].branch ] = pr_list[i];
         }
 
         console.log('prs = ' + JSON.stringify(prs));
