@@ -141,13 +141,15 @@ app.get('/', requireLogin, function(req, res) {
 app.post('/checkout_branch', function(req, res) {
   var pr = req.body.pr;
   // ssh to staging
-  // exec grunt branch --pr=req.params.pr
+  // exec grunt checkout_branch --branch req.params.pr
+
+  if (pr !== "master") pr = "pr/" + pr;
   console.log('pr = ' + pr);
 
   var c = new connection();
 
   c.on('ready', function() {
-    c.exec("cd /usr/local/node/forkable-ci && grunt checkout_branch --pr " + pr, function(err, stream) {
+    c.exec("cd /usr/local/node/forkable-ci && grunt checkout_branch --branch " + pr, function(err, stream) {
       if (err) throw err;
 
       stream.on('data', function(data, extended) {
@@ -165,7 +167,7 @@ app.post('/checkout_branch', function(req, res) {
     models.PullRequest.update({ on_staging : true }, { $set : { on_staging : false } }, function(err) {
 
       // if everything went ok, update mongodb
-      models.PullRequest.update({ number : pr }, { $set : { on_staging : true } }, { upsert : true }, function(err) {
+      models.PullRequest.update({ number : pr }, { $set : { on_staging : true }, { $push : { deploys : { user : req.user } } } }, { upsert : true }, function(err) {
         // render new page?
         res.json({
           status: "ok"

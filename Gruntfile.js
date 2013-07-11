@@ -84,11 +84,11 @@ module.exports = function(grunt) {
       checkout_branch: {
         command: [
           "git fetch origin",
-          "git checkout pr/" + grunt.option("pr"),
+          "git checkout " + grunt.option("branch"),
+          "git pull",
           "npm install",
           "git submodule init",
-          "git submodule update",
-          "forever restart coursefork.js"
+          "git submodule update"
         ].join('&&'),
         options: {
           stdout: true,
@@ -175,9 +175,13 @@ module.exports = function(grunt) {
       }
     }
 
-    // concat css
+    // concat files and process relative urls
     grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
     grunt.task.run('concat');
+
+    // process @import statements
+    grunt.config.set('imports.file', 'public/css/main.min.css');
+    grunt.task.run('imports');
 
     // uglify js
     grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
@@ -224,19 +228,68 @@ module.exports = function(grunt) {
       }
     }
 
-    // concat css
+    // concat files and process relative urls
     grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
     grunt.task.run('concat');
 
+    // process @import statements
+    grunt.config.set('imports.file', 'public/css/main.min.css');
+    grunt.task.run('imports');
+
+  });
+
+  grunt.registerMultiTask('imports', 'Move @import statements to top', function() {
+    var src = grunt.file.read(this.data);
+    var regex = /@import.*\;/gim;
+    var matches = src.match(regex);
+    if (matches && matches.length > 0) {
+      var imports = matches.join("\n");
+      src = imports + "\n\n" + src.replace(regex, "");
+      grunt.file.write(this.data, src);
+    }
   });
 
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
 
   // checkout branch
-  // needs --pr command line arg set to a pull request number
-  // e.g. grunt checkout_branch --pr 59
-  grunt.registerTask('checkout_branch', ['shell:checkout_branch']);
+  // needs --branch command line arg set to a pull request number
+  // e.g. grunt checkout_branch --branch 59
+  //grunt.registerTask('checkout_branch', ['shell:checkout_branch']);
+  grunt.registerTask('checkout_branch', 'Checkout a branch or pull request', function() {
+
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
+
+    // pull latest code
+    grunt.task.run('shell:checkout_branch');
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // concat files and process relative urls
+    grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
+    grunt.task.run('concat');
+
+    // process @import statements
+    grunt.config.set('imports.file', 'public/css/main.min.css');
+    grunt.task.run('imports');
+
+    // uglify js
+    grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
+    grunt.task.run('uglify');
+
+    // restart service
+    grunt.task.run('shell:restart');
+
+  });
 
   // work in progress...
   grunt.registerTask('test', ['shell:test']);

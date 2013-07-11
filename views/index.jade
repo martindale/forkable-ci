@@ -1,5 +1,8 @@
 extends layout
 
 block content
-  each pull_request in pull_requests
-    include blocks/pull_request
+  if pull_requests
+    each pull_request in pull_requests
+      include blocks/pull_request
+  else
+    p No open pull requests found.

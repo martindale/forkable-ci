@@ -5,7 +5,11 @@ var mongoose = require("mongoose")
 
 var PullRequestSchema = new Schema({
   number: { type: Number, required: true },
-  on_staging: { type: Boolean, default: false }
+  on_staging: { type: Boolean, default: false },
+  deploys: [ new Schema({
+    user: { type: ObjectId, ref: 'User' },
+    date: { type: Date, default: Date.now }
+  }) ]
 });
 
 var PullRequest = mongoose.model("PullRequest", PullRequestSchema);
