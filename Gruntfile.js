@@ -1,4 +1,6 @@
-var prompt = require("prompt");
+var prompt = require("prompt")
+  , jade   = require("jade")
+  , fs     = require("fs");
 
 module.exports = function(grunt) {
   var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
@@ -186,6 +188,9 @@ module.exports = function(grunt) {
     grunt.config.set('imports.file', 'public/css/main.min.css');
     grunt.task.run('imports');
 
+    // jade templates
+    grunt.task.run('compile_jade');
+
     // uglify js
     grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
     grunt.task.run('uglify');
@@ -250,6 +255,29 @@ module.exports = function(grunt) {
       src = imports + "\n\n" + src.replace(regex, "");
       grunt.file.write(this.data, src);
     }
+  });
+
+  grunt.registerTask('compile_jade', 'Compile client-side jade templates', function() {
+    var templates = require(root + '/templates');
+
+    // compile into functions and convert to strings
+    // inspired by clientjade (https://github.com/jgallen23/clientjade)
+    var compiledFunctions = Object.keys(templates).map(function(filename) {
+      return jade.compile(fs.readFileSync(root + '/' + templates[filename]), {
+        filename: filename,
+        client: true,
+        compileDebug: false
+      }).toString().replace(/function anonymous/, 'jade.templates["' + filename + '"] = function');
+    });
+
+    // init client-side templates object
+    compiledFunctions.unshift('jade.templates = {};');
+
+    // need jade runtime.js
+    compiledFunctions.unshift(fs.readFileSync(root + '/node_modules/jade/runtime.js'));
+
+    // write to file
+    fs.writeFileSync(root + '/public/js/jade-templates.js', compiledFunctions.join("\n"));
   });
 
   // local git branch check
