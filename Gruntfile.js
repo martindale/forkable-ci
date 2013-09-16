@@ -138,8 +138,8 @@ module.exports = function(grunt) {
       css: {
         options: {
           process: function(src, filepath) {
-            // replace relative reference to ../img with /img
-            return src.replace(/\.\.(\/img)/g, '$1');
+            // replace relative references
+            return src.replace(/\.\.(\/)/g, '$1');
           }
         }
       }
