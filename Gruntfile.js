@@ -166,9 +166,15 @@ module.exports = function(grunt) {
         mangle: false
       },
       js: {}
+    },
+    env: {
+      config: {
+        src: "config.json"
+      }
     }
   });
 
+  grunt.loadNpmTasks('grunt-env');
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-shell');
   grunt.loadNpmTasks('grunt-contrib-concat');
@@ -177,9 +183,103 @@ module.exports = function(grunt) {
   // -----------
   // Shell tasks
 
+  // env test
+  grunt.registerTask('env_test', ['env:config', 'blah']);
+
+  grunt.registerTask('blah', 'Blah', function() {
+    console.log(process.env.GROVE_NOTICE_KEY);
+  });
+
   // assumes repo has already been cloned
   // git@github.com:coursefork/forkshop.git
-  grunt.registerTask('pull', 'Pull latest updates to local repo', function() {
+  grunt.registerTask('pull', [
+      'env:config'
+    , 'grove_starting'
+    , 'exec_shell_pull'
+    , 'css'
+    , 'compile_jade'
+    , 'javascript'
+    , 'shell:restart'
+    , 'grove_finished'
+  ]);
+
+  grunt.registerTask('grove_starting', 'Tell Grove deploy is starting', function() {
+    if (process.env.GROVE_NOTICE_KEY) {
+      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
+        data: {
+            service: 'snarl'
+          , message: os.hostname() + ' began the deploy process...'
+          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
+          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
+        }
+      });
+    }
+  });
+
+  grunt.registerTask('exec_shell_pull', 'Run shell:pull', function() {
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
+
+    // pull latest code
+    grunt.task.run('shell:pull');
+  });
+
+  grunt.registerTask('css', 'Prepare css for production', function() {
+    // need to setBase again?
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // concat files and process relative urls
+    grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
+    grunt.task.run('concat');
+
+    // process @import statements
+    grunt.config.set('imports.file', 'public/css/main.min.css');
+    grunt.task.run('imports');
+  });
+
+  grunt.registerTask('javascript', 'Prepare javascript for production', function() {
+    // need to setBase again?
+
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
+
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      }
+    }
+
+    // uglify js
+    grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
+    grunt.task.run('uglify');
+  });
+
+  grunt.registerTask('grove_finished', 'Tell Grove deploy is finished', function() {
+    if (process.env.GROVE_NOTICE_KEY) {
+      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
+        data: {
+            service: 'snarl'
+          , message: 'Deploy process completed.'
+          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
+          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
+        }
+      });
+    }
+  });
+
+  grunt.registerTask('pull_bak', 'Pull latest updates to local repo', function() {
+
+    grunt.task.run('env:config');
 
     if (process.env.GROVE_NOTICE_KEY) {
       rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
@@ -321,6 +421,9 @@ module.exports = function(grunt) {
 
   // local git branch check
   grunt.registerTask('git_branch', ['shell:git_branch']);
+
+  // return git revision
+  grunt.registerTask('rev', ['shell:rev']);
 
   // checkout branch
   // needs --branch command line arg set to a pull request number
