@@ -248,13 +248,16 @@ module.exports = function(grunt) {
     // makes all the file manipulation stuff work without being fully qualified
     grunt.file.setBase(root);
 
-    // require assets for concat and uglify
-    var assets = require(root + '/assets');
+    // may already have assets
+    if (typeof(assets) == 'undefined') {
+      // require assets for concat and uglify
+      var assets = require(root + '/assets');
 
-    // need to prepend 'public' to each asset
-    for (min_asset in assets) {
-      for (var index in assets[min_asset]) {
-        assets[min_asset][index] = 'public' + assets[min_asset][index];
+      // need to prepend 'public' to each asset
+      for (min_asset in assets) {
+        for (var index in assets[min_asset]) {
+          assets[min_asset][index] = 'public' + assets[min_asset][index];
+        }
       }
     }
 
