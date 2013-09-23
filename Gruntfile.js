@@ -217,15 +217,13 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('exec_shell_pull', 'Run shell:pull', function() {
-    // makes all the file manipulation stuff work without being fully qualified
-    grunt.file.setBase(root);
-
     // pull latest code
     grunt.task.run('shell:pull');
   });
 
   grunt.registerTask('css', 'Prepare css for production', function() {
-    // need to setBase again?
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
 
     // require assets for concat and uglify
     var assets = require(root + '/assets');
@@ -247,7 +245,8 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask('javascript', 'Prepare javascript for production', function() {
-    // need to setBase again?
+    // makes all the file manipulation stuff work without being fully qualified
+    grunt.file.setBase(root);
 
     // require assets for concat and uglify
     var assets = require(root + '/assets');
