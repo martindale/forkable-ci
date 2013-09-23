@@ -183,13 +183,6 @@ module.exports = function(grunt) {
   // -----------
   // Shell tasks
 
-  // env test
-  grunt.registerTask('env_test', ['env:config', 'blah']);
-
-  grunt.registerTask('blah', 'Blah', function() {
-    console.log(process.env.GROVE_NOTICE_KEY);
-  });
-
   // assumes repo has already been cloned
   // git@github.com:coursefork/forkshop.git
   grunt.registerTask('pull', [
@@ -231,7 +224,10 @@ module.exports = function(grunt) {
     // need to prepend 'public' to each asset
     for (min_asset in assets) {
       for (var index in assets[min_asset]) {
-        assets[min_asset][index] = 'public' + assets[min_asset][index];
+        var public_added = assets[min_asset][index].match(/^public/);
+        if (!public_added) {
+          assets[min_asset][index] = 'public' + assets[min_asset][index];
+        }
       }
     }
 
@@ -248,14 +244,14 @@ module.exports = function(grunt) {
     // makes all the file manipulation stuff work without being fully qualified
     grunt.file.setBase(root);
 
-    // may already have assets
-    if (typeof(assets) == 'undefined') {
-      // require assets for concat and uglify
-      var assets = require(root + '/assets');
+    // require assets for concat and uglify
+    var assets = require(root + '/assets');
 
-      // need to prepend 'public' to each asset
-      for (min_asset in assets) {
-        for (var index in assets[min_asset]) {
+    // need to prepend 'public' to each asset
+    for (min_asset in assets) {
+      for (var index in assets[min_asset]) {
+        var public_added = assets[min_asset][index].match(/^public/);
+        if (!public_added) {
           assets[min_asset][index] = 'public' + assets[min_asset][index];
         }
       }
