@@ -1,8 +1,7 @@
 var prompt = require("prompt")
   , jade   = require("jade")
   , fs     = require("fs")
-  , os     = require("os")
-  , rest   = require("restler");
+  , os     = require("os");
 
 module.exports = function(grunt) {
   var remote = grunt.option('remote') ? grunt.file.readJSON(grunt.option('remote')) : {};
@@ -171,12 +170,26 @@ module.exports = function(grunt) {
       config: {
         src: "config.json"
       }
+    },
+    restful: {
+      options: {
+        method: 'post',
+        uri: '<%= grove_uri %>',
+        destination: '/tmp/grunt-restler',
+        data: {
+            service: 'snarl'
+          , message: '<%= grove_message %>'
+          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
+          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
+        }
+      }
     }
   });
 
   grunt.loadNpmTasks('grunt-env');
   grunt.loadNpmTasks('grunt-ssh');
   grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-restful');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
 
@@ -198,14 +211,9 @@ module.exports = function(grunt) {
 
   grunt.registerTask('grove_starting', 'Tell Grove deploy is starting', function() {
     if (process.env.GROVE_NOTICE_KEY) {
-      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
-        data: {
-            service: 'snarl'
-          , message: os.hostname() + ' began the deploy process...'
-          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
-          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
-        }
-      });
+      grunt.config.set('grove_message', os.hostname() + ' began the deploy process...');
+      grunt.config.set('grove_uri', 'https://grove.io/api/notice/' + process.env.GROVE_NOTICE_KEY + '/');
+      grunt.task.run('restful');
     }
   });
 
@@ -264,77 +272,10 @@ module.exports = function(grunt) {
 
   grunt.registerTask('grove_finished', 'Tell Grove deploy is finished', function() {
     if (process.env.GROVE_NOTICE_KEY) {
-      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
-        data: {
-            service: 'snarl'
-          , message: 'Deploy process completed.'
-          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
-          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
-        }
-      });
+      grunt.config.set('grove_message', 'Deploy process completed...');
+      grunt.config.set('grove_uri', 'https://grove.io/api/notice/' + process.env.GROVE_NOTICE_KEY + '/');
+      grunt.task.run('restful');
     }
-  });
-
-  grunt.registerTask('pull_bak', 'Pull latest updates to local repo', function() {
-
-    grunt.task.run('env:config');
-
-    if (process.env.GROVE_NOTICE_KEY) {
-      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
-        data: {
-            service: 'snarl'
-          , message: os.hostname() + ' began the deploy process...'
-          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
-          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
-        }
-      });
-    }
-
-    // makes all the file manipulation stuff work without being fully qualified
-    grunt.file.setBase(root);
-
-    // pull latest code
-    grunt.task.run('shell:pull');
-
-    // require assets for concat and uglify
-    var assets = require(root + '/assets');
-
-    // need to prepend 'public' to each asset
-    for (min_asset in assets) {
-      for (var index in assets[min_asset]) {
-        assets[min_asset][index] = 'public' + assets[min_asset][index];
-      }
-    }
-
-    // concat files and process relative urls
-    grunt.config.set('concat.css.files', { 'public/css/main.min.css': assets['/css/main.min.css'] });
-    grunt.task.run('concat');
-
-    // process @import statements
-    grunt.config.set('imports.file', 'public/css/main.min.css');
-    grunt.task.run('imports');
-
-    // jade templates
-    grunt.task.run('compile_jade');
-
-    // uglify js
-    grunt.config.set('uglify.js.files', { 'public/js/main.min.js': assets['/js/main.min.js'] });
-    grunt.task.run('uglify');
-
-    // restart service
-    grunt.task.run('shell:restart');
-
-    if (process.env.GROVE_NOTICE_KEY) {
-      rest.post('https://grove.io/api/notice/'+process.env.GROVE_NOTICE_KEY+'/', {
-        data: {
-            service: 'snarl'
-          , message: 'Deploy process completed.'
-          , url: 'http://forkable-ci.herokuapp.com/' // TODO: link to activity item...
-          , icon_url: 'https://i.imgur.com/wgOlRFh.png'
-        }
-      });
-    }
-
   });
 
   grunt.registerTask('uglify_pr', 'Uglify Pull Request', function() {
