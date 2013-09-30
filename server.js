@@ -2,12 +2,15 @@
 var connection     = require("ssh2")
   , express        = require("express")
   , request        = require("request")
+  , rest           = require('restler')
   , app            = express()
   , mongoose       = require("mongoose")
   , passport       = require("passport")
   , GitHubStrategy = require("passport-github").Strategy
   , RedisStore     = require("connect-redis")(express)
   , url            = require("url");
+
+var config = require('./config');
 
 // TODO: schema for currently deployed branch (rather than real-time check?)
 // schema for past test results?
@@ -61,21 +64,22 @@ passport.deserializeUser(function(user_id, done) {
 
 passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
-    clientSecret: process.env.GITHUB_CLIENT_SECRET
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    scope: 'repo'
   }, function(accessToken, refreshToken, profile, done) {
     // create / update user
     models.User.findOne({ username : profile.username }, function(err, user) {
-      // may want to update some user fields...?
-      if (user) return done(null, user);
+      if (!user) {
+        var user = new models.User();
+      }
 
-      var cf_user = new models.User();
-      cf_user.username = profile.username;
-      cf_user.accessToken = accessToken;
-      cf_user.profileUrl = profile.profileUrl,
-      cf_user.github_id = profile.id;
+      user.username = profile.username;
+      user.accessToken = accessToken;
+      user.profileUrl = profile.profileUrl,
+      user.github_id = profile.id;
 
-      cf_user.save(function(err, cf_user) {
-        return done(null, cf_user);
+      user.save(function(err) {
+        return done(null, user);
       });
     });
   }
@@ -93,6 +97,41 @@ app.post('/github_webhook', function(req, res) {
     console.log("req.body = " + JSON.stringify(req.body));
 
     res.send("OK");
+});
+app.get('/hooks', requireLogin , function(req, res) {
+  console.log(req.user);
+
+  rest.get('https://api.github.com/repos/' + config.github.repo + '/hooks', {
+    headers: {
+      'Authorization': 'token ' + req.user.accessToken
+    }
+  }).on('complete', function(data) {
+    res.render('hooks', {
+      hooks: data
+    });
+  });
+});
+app.post('/hooks/init', requireLogin , function(req, res) {
+  rest.post('https://api.github.com/repos/' + config.github.repo + '/hooks', {
+      headers: {
+        'Authorization': 'token ' + req.user.accessToken
+      },
+      data: JSON.stringify({
+          name: 'ForkableCI'
+        , events: ['pull_request']
+        , config: {
+            url: 'http://ci.coursefork.org/hooks/pull-request'
+          }
+      })
+    }).on('complete', function(data) {
+      res.send( data );
+    });
+});
+app.post('/hooks/:hookType', function(req, res) {
+  res.send({
+    status: 'ok'
+  });
+  console.log(req.params);
 });
 
 app.get('/auth/github', passport.authenticate('github'));
