@@ -120,7 +120,7 @@ app.post('/hooks/init', requireLogin , function(req, res) {
           name: 'web'
         , events: ['pull_request']
         , config: {
-            url: 'http://ci.coursefork.org/hooks/pull-request'
+            url: config.host + '/hooks/pull-request'
           }
       })
     }).on('complete', function(data) {
