@@ -117,7 +117,7 @@ app.post('/hooks/init', requireLogin , function(req, res) {
         'Authorization': 'token ' + req.user.accessToken
       },
       data: JSON.stringify({
-          name: 'ForkableCI'
+          name: 'web'
         , events: ['pull_request']
         , config: {
             url: 'http://ci.coursefork.org/hooks/pull-request'
