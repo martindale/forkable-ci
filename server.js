@@ -127,8 +127,10 @@ app.post('/hooks/init', requireLogin , function(req, res) {
       res.send( data );
     });
 });
-app.post('/hooks/:hookType', function(req, res) {
+var handleHook = function(req, res) {
 
+  console.log(req.method);
+  console.log(req.path);
   console.log(req.params);
   console.log(req.body);
 
@@ -155,7 +157,13 @@ app.post('/hooks/:hookType', function(req, res) {
       done();
     break;
   }
-});
+}
+app.get('/hooks/:hookType', handleHook);
+app.put('/hooks/:hookType', handleHook);
+app.post('/hooks/:hookType', handleHook);
+app.patch('/hooks/:hookType', handleHook);
+
+
 app.post('/hooks/:hookID/test', requireLogin , function(req, res) {
   console.log('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests')
   rest.post('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests', {
