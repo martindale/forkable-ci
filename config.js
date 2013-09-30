@@ -1,5 +1,5 @@
 module.exports = {
-  host: 'https://forkable-ci.herokuapp.com',
+  host: process.env.FORKABLE_CI_HOST || 'https://forkable-ci.herokuapp.com',
   github: {
     repo: process.env.GITHUB_REPO || 'coursefork/forkshop'
   },

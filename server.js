@@ -133,6 +133,16 @@ app.post('/hooks/:hookType', function(req, res) {
   });
   console.log(req.params);
 });
+app.post('/hooks/:hookID/test', requireLogin , function(req, res) {
+  console.log('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests')
+  rest.post('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests', {
+      headers: {
+        'Authorization': 'token ' + req.user.accessToken
+      },
+  }).on('complete', function(data) {
+    res.send(data);
+  });
+});
 
 app.get('/auth/github', passport.authenticate('github'));
 
