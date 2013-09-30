@@ -128,10 +128,33 @@ app.post('/hooks/init', requireLogin , function(req, res) {
     });
 });
 app.post('/hooks/:hookType', function(req, res) {
-  res.send({
-    status: 'ok'
-  });
+
   console.log(req.params);
+  console.log(req.body);
+
+  var done = function(data) {
+    res.send({
+        status: 'ok'
+      , data: data
+    });
+  }
+
+  switch (req.param('hookType')) {
+    case 'pull-request':
+      rest.post('https://grove.io/api/notice/' + config.grove.keys.ops + '/', {
+        data: {
+            service: config.grove.bot.name
+          , icon_url: config.grove.bot.avatar
+          , message: '[WEBHOOK] pull-request : ' + JSON.stringify(req.body)
+          , url: 'https://github.com/' + config.github.repo
+        }
+      }).on('complete', done );
+    break;
+    default:
+      console.log('unhandled hook type "' + req.param('hookType') +'"');
+      done();
+    break;
+  }
 });
 app.post('/hooks/:hookID/test', requireLogin , function(req, res) {
   console.log('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests')
