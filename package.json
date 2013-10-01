@@ -26,6 +26,7 @@
     "grunt-restful": "0.1.x",
     "prompt": "0.2.x",
     "restler": "~2.0.1",
+    "underscore": "1.5.2",
     "github": "~0.1.11"
   },
   "engines": {
