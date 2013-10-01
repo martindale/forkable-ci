@@ -127,6 +127,18 @@ app.post('/hooks/init', requireLogin , function(req, res) {
       res.send( data );
     });
 });
+
+app.del('/hooks/:hookID', requireLogin , function(req, res) {
+  rest.del('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID'), {
+      headers: {
+        'Authorization': 'token ' + req.user.accessToken
+      },
+  }).on('complete', function(data) {
+    console.log('da bleet ' +data);
+    res.send( data );
+  });
+});
+
 var handleHook = function(req, res) {
 
   console.log(req.method);
@@ -162,7 +174,6 @@ app.get('/hooks/:hookType', handleHook);
 app.put('/hooks/:hookType', handleHook);
 app.post('/hooks/:hookType', handleHook);
 app.patch('/hooks/:hookType', handleHook);
-
 
 app.post('/hooks/:hookID/test', requireLogin , function(req, res) {
   console.log('https://api.github.com/repos/' + config.github.repo + '/hooks/' + req.param('hookID') + '/tests')
