@@ -6,6 +6,10 @@ module.exports = {
   grove: {
     keys: {
       ops: process.env.GROVE_NOTICE_KEY || 'set your notice key here'
+    },
+    bot: {
+        name: 'grobot'
+      , avatar: 'https://i.imgur.com/wgOlRFh.png'
     }
   }
 }
