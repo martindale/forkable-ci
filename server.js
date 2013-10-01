@@ -8,7 +8,8 @@ var connection     = require("ssh2")
   , passport       = require("passport")
   , GitHubStrategy = require("passport-github").Strategy
   , RedisStore     = require("connect-redis")(express)
-  , url            = require("url");
+  , url            = require("url")
+  , _              = require('underscore');
 
 var config = require('./config');
 
@@ -146,6 +147,8 @@ var handleHook = function(req, res) {
   console.log(req.params);
   console.log(req.body);
 
+
+
   var done = function(data) {
     res.send({
         status: 'ok'
@@ -155,14 +158,27 @@ var handleHook = function(req, res) {
 
   switch (req.param('hookType')) {
     case 'pull-request':
-      rest.post('https://grove.io/api/notice/' + config.grove.keys.ops + '/', {
-        data: {
-            service: config.grove.bot.name
-          , icon_url: config.grove.bot.avatar
-          , message: '[WEBHOOK] pull-request : ' + JSON.stringify(req.body)
-          , url: 'https://github.com/' + config.github.repo
-        }
-      }).on('complete', done );
+      var pull = JSON.parse(req.body.payload);
+      switch (pull.action) {
+        default:
+          console.log('unhandled pull request action: ' + pull.action);
+          done();
+        break;
+        case 'opened':
+          rest.post('https://grove.io/api/notice/' + config.grove.keys.ops + '/', {
+            data: {
+                service: config.grove.bot.name
+              , icon_url: config.grove.bot.avatar
+              , message: '@'+pull.pull_request.user.login + ' wants a review of '+pull.pull_request.changed_files+' changed files in "'+pull.pull_request.title+'": '+pull.pull_request.url+' -- mergeability is '+pull.pull_request.mergeable_state+', but have at ye swashbuckling code pirates!'
+              , url: config.host
+            }
+          }).on('complete', done );
+        break;
+        case 'synchronize':
+          // TODO: debounce notifications of pushes here...
+          done();
+        break;
+      }
     break;
     default:
       console.log('unhandled hook type "' + req.param('hookType') +'"');
