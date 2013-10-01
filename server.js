@@ -169,7 +169,7 @@ var handleHook = function(req, res) {
             data: {
                 service: config.grove.bot.name
               , icon_url: config.grove.bot.avatar
-              , message: '@'+pull.pull_request.user.login + ' wants a review of '+pull.pull_request.changed_files+' changed files in "'+pull.pull_request.title+'": '+pull.pull_request.url+' -- mergeability is '+pull.pull_request.mergeable_state+', but have at ye swashbuckling code pirates!'
+              , message: '@'+pull.pull_request.user.login + ' wants a review of '+pull.pull_request.changed_files+' changed files in "'+pull.pull_request.title+'": '+pull.pull_request.html_url+' -- mergeability is '+pull.pull_request.mergeable_state+', but have at ye swashbuckling code pirates!'
               , url: config.host
             }
           }).on('complete', done );
